@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>概念学习资料：Skill（技能）</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; background: #fafbfc; color: #24292f; line-height: 1.8; padding: 40px 16px; }
+  .wrap { max-width: 800px; margin: 0 auto; }
+  header { background: linear-gradient(135deg, #8250df, #6639ba); color: #fff; padding: 32px 36px; border-radius: 14px; margin-bottom: 28px; }
+  header h1 { font-size: 1.7em; margin-bottom: 6px; }
+  header .meta { font-size: 0.88em; opacity: 0.92; }
+  section { background: #fff; border-radius: 12px; padding: 24px 32px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-left: 4px solid #8250df; }
+  h2 { font-size: 1.15em; color: #6639ba; margin-bottom: 12px; }
+  ul, ol { margin: 8px 0 8px 22px; }
+  li { margin-bottom: 6px; }
+  .personal { background: #fff8c5; border-left: 4px solid #d4a72c; padding: 14px 18px; border-radius: 8px; margin: 10px 0; }
+  .personal::before { content: "🐾 个人理解（非官方定义）"; display: block; font-weight: 700; color: #9a6700; font-size: 0.9em; margin-bottom: 6px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 0.94em; }
+  th, td { border: 1px solid #d0d7de; padding: 8px 12px; text-align: left; }
+  th { background: #fbefff; }
+  .vs .card { border: 1px solid #d0d7de; border-radius: 10px; padding: 14px 18px; margin-bottom: 12px; }
+  .vs .no { border-left: 4px solid #cf222e; background: #fff5f5; }
+  .vs .yes { border-left: 4px solid #8250df; background: #fbefff; }
+  .vs h3 { font-size: 1em; margin-bottom: 8px; }
+  .quiz li { margin-bottom: 10px; }
+  .ref li { margin-bottom: 10px; }
+  .ref .why { color: #57606a; font-size: 0.88em; display: block; }
+  .check { background: #fbefff; border: 1px dashed #8250df; border-radius: 10px; padding: 16px 20px; }
+  .check .blank { border-bottom: 1px solid #8c959f; height: 30px; margin: 10px 0; }
+  footer { text-align: center; color: #57606a; font-size: 0.85em; margin: 32px 0 8px; }
+  figure { text-align: center; margin: 16px 0; }
+  figcaption { font-size: 0.85em; color: #57606a; margin-top: 6px; }
+  pre { background: #24292f; color: #e6edf3; padding: 14px 18px; border-radius: 10px; overflow-x: auto; font-size: 0.86em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>🧰 Skill（技能）</h1>
+  <div class="meta">生成工具：concept-tutor Skill ｜ 生成日期：2026-09-08 ｜ 学习者：star-mqp</div>
+</header>
+
+<section>
+  <h2>一、学习目标</h2>
+  <ol>
+    <li>读完本资料我能说清 Skill 的本质（打包的文件夹：指令+脚本+资源）和它解决的问题</li>
+    <li>我能解释 Skill 的"按需加载"机制与上下文的关系</li>
+    <li>我能区分项目级 Skill 与用户级 Skill，并知道各自的存放路径</li>
+    <li>我能自己写一个结构合格的 SKILL.md（元数据+适用场景+输入+流程+输出+自检）</li>
+  </ol>
+</section>
+
+<section>
+  <h2>二、核心问题</h2>
+  <ol>
+    <li>有了提示词和 Agent，为什么还需要 Skill？它"沉淀"了什么？</li>
+    <li>Skill 的"按需加载"为什么能兼顾专业能力和响应速度？</li>
+    <li>什么样的任务值得做成 Skill？</li>
+  </ol>
+</section>
+
+<section>
+  <h2>三、我的解释（个人化）</h2>
+  <div class="personal">
+    <p>我把 Skill 理解成给 AI 的<b>"岗位培训手册 + 工具箱"</b>。裸模型像新来的聪明实习生：什么都能学，但不了解你的工作习惯；你每次都要从头教（重复写提示词）。Skill 就是把你<b>教过一遍的东西固化下来</b>：一套说明书（SKILL.md）、可能还有配套脚本和资料，打包成一个文件夹。下次遇到同类任务，AI 翻出这本手册就能直接上岗。</p>
+    <p>它有两个聪明的设计：一是<b>按需加载</b>——手册平时锁在柜子里（只留一张封面简介），真正接到相关任务才翻开，不占用宝贵的上下文桌面；二是<b>沉淀复用</b>——解决问题的经验从"聊天记录"变成"可版本管理的文件"，能提交到 Git、能分享给别人、能越改越好。Anthropic 的比喻很贴切：Skill 就像"让你打包专业知识的定制入职培训材料"。</p>
+  </div>
+</section>
+
+<section>
+  <h2>四、核心机制 / 组成</h2>
+  <p>一个 Skill 就是一个文件夹，核心是 <code>SKILL.md</code>（元数据 + 指令），旁边可放脚本和资源文件。Anthropic 总结的四大特性：</p>
+  <table>
+    <tr><th>特性</th><th>含义</th></tr>
+    <tr><td>可组合</td><td>多个 Skill 可同时挂载，AI 自动识别并协调使用</td></tr>
+    <tr><td>可移植</td><td>同一格式在应用端、CLI 工具、API 通用，一次构建处处可用</td></tr>
+    <tr><td>高效</td><td>按需加载：只在任务相关时读取，只加载所需的最小内容</td></tr>
+    <tr><td>强大</td><td>可以携带可执行脚本，适合"写代码比生成文字更可靠"的任务</td></tr>
+  </table>
+
+  <p><b>存放层级（以 WorkBuddy / Claude 生态为例）：</b></p>
+  <table>
+    <tr><th>层级</th><th>路径</th><th>作用范围</th></tr>
+    <tr><td>用户级</td><td><code>~/.workbuddy/skills/</code></td><td>个人所有项目可用（跨工作区）</td></tr>
+    <tr><td>项目级</td><td><code>仓库根/.workbuddy/skills/</code></td><td>仅本项目可用，随仓库共享给团队</td></tr>
+  </table>
+
+  <p><b>本仓库的实例结构：</b></p>
+<pre>green-apple2026/
+└── .workbuddy/
+    └── skills/
+        └── concept-tutor/      ← 项目级 Skill
+            └── SKILL.md        ← 元数据 + 指令</pre>
+
+  <figure>
+    <svg viewBox="0 0 640 170" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+      <defs><marker id="arr3" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#8250df"/></marker></defs>
+      <rect x="30" y="55" width="150" height="62" rx="10" fill="#fff" stroke="#8250df" stroke-width="2"/>
+      <text x="105" y="80" text-anchor="middle" font-size="13" fill="#24292f">📁 平时：常驻的</text>
+      <text x="105" y="98" text-anchor="middle" font-size="13" fill="#24292f">只有 name+简介</text>
+      <rect x="245" y="55" width="150" height="62" rx="10" fill="#fbefff" stroke="#8250df" stroke-width="2"/>
+      <text x="320" y="80" text-anchor="middle" font-size="13" fill="#6639ba">⚡ 任务匹配时：</text>
+      <text x="320" y="98" text-anchor="middle" font-size="13" fill="#6639ba">加载 SKILL.md</text>
+      <rect x="460" y="55" width="150" height="62" rx="10" fill="#fff8c5" stroke="#d4a72c" stroke-width="2"/>
+      <text x="535" y="80" text-anchor="middle" font-size="13" fill="#9a6700">🔧 需要时：</text>
+      <text x="535" y="98" text-anchor="middle" font-size="13" fill="#9a6700">执行配套脚本</text>
+      <line x1="180" y1="86" x2="241" y2="86" stroke="#8250df" stroke-width="2" marker-end="url(#arr3)"/>
+      <line x1="395" y1="86" x2="456" y2="86" stroke="#d4a72c" stroke-width="2" marker-end="url(#arr3)"/>
+      <text x="320" y="145" text-anchor="middle" font-size="12" fill="#57606a">按需加载：占用上下文最小，专业能力最大</text>
+    </svg>
+    <figcaption>图 1：Skill 的三级按需加载——简介常驻、指令按需、脚本更深处</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2>五、具体应用场景</h2>
+  <p><b>场景 1（本仓库）：</b>我发现"把概念学明白"这件事会反复发生——课程每周都有新概念。与其每次重新描述"我要什么格式、要哪些小节、来源要核查"，不如把这些要求固化成项目级 Skill <code>concept-tutor</code>。本次作业的三份 HTML（agent / llm-context / skill）就是按它的流程生成的，下次学习"RAG"时只需一句"用 concept-tutor 学习 RAG"。这就是<b>把一次性提示词升级为可复用资产</b>。</p>
+  <p><b>场景 2（官方示例）：</b>Anthropic 的技能市场里有处理 Excel（含公式）、PowerPoint、Word、PDF 的官方 Skill——这类任务"写脚本比让模型逐 token 生成文件更可靠"，正是 Skill"可以包含可执行代码"特性的用武之地。WorkBuddy 文档的实践案例也建议：<b>先定义单一能力、把触发条件说清楚、从最高频的重复动作开始沉淀</b>。</p>
+</section>
+
+<section>
+  <h2>六、容易混淆的问题与使用边界</h2>
+  <div class="vs">
+    <div class="card no">
+      <h3>❌ Skill ≠ 一段提示词</h3>
+      <p>一次性提示词用完即弃、存在聊天记录里；Skill 是文件、有元数据、可版本管理、可分享，触发和输出结构都被规范定义。</p>
+    </div>
+    <div class="card yes">
+      <h3>❌ Skill ≠ 工具（Tool）</h3>
+      <p>工具是 Agent 的一次性"手"（如读文件、搜索），由模型逐次调用；Skill 是"方法论手册"，教 Agent 怎么组合动作完成一类任务。Skill 里可以指挥工具的使用。</p>
+    </div>
+  </div>
+  <ul>
+    <li><b>Skill ≠ 插件/扩展的安装包</b>：它本质是模型可读的指令与资源文件夹，不改变模型本身，模型能力仍由底层 LLM 决定。</li>
+    <li><b>使用边界 1：值得沉淀才做 Skill</b>。只做一次的任务写提示词即可；高频、流程稳定的任务才值得固化（WorkBuddy 文档："越高频的重复操作，越值得沉淀成 Skill"）。</li>
+    <li><b>使用边界 2：安全责任</b>。Skill 可能携带可执行代码，Anthropic 明确提醒"坚持使用可信来源的技能"——本作业仓库里的 Skill 全部是自己编写的，未引入第三方可执行脚本。</li>
+  </ul>
+</section>
+
+<section>
+  <h2>七、自测问题</h2>
+  <ol class="quiz">
+    <li>说出 Skill 文件夹的三类组成内容，以及 SKILL.md 顶部元数据至少应包含哪两个字段。</li>
+    <li>"按需加载"解决了哪两个互相冲突的目标？这和上下文的什么性质有关？</li>
+    <li>项目级 Skill 和用户级 Skill 的路径分别是什么？本作业为什么要求用项目级？</li>
+    <li>一个合格的 SKILL.md 应写清哪六个方面的内容（对照本仓库的 concept-tutor）？</li>
+    <li>（开放）设想你下学期还要学 20 个新概念，设计一个"学习流水线"：哪些环节交给 Skill，哪些环节必须留给人？说明理由。</li>
+  </ol>
+</section>
+
+<section>
+  <h2>八、参考来源（均已核查可访问）</h2>
+  <ul class="ref">
+    <li>Anthropic 官方博客：<a href="https://claude.com/blog/skills">Introducing Agent Skills</a>
+      <span class="why">支撑论断：Skill 的定义（指令+脚本+资源的文件夹）、四大特性（可组合/可移植/高效/强大）、按需加载机制、"定制入职培训材料"比喻、安全提醒。文中另给出官方示例仓库 github.com/anthropics/skills。</span></li>
+    <li>WorkBuddy 官方文档：<a href="https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Practice-Cases/Practice-Eight">实践八：自我进化——创建自己的 Skills</a>
+      <span class="why">支撑论断：创建 Skill 的建议（先定义单一能力、说清触发条件、从高频动作开始沉淀），Skill 保存个人工作习惯与任务逻辑的定位。</span></li>
+    <li>WorkBuddy 官方文档：<a href="https://www.codebuddy.cn/docs/workbuddy/Overview">WorkBuddy 简介</a>
+      <span class="why">支撑论断：第五节场景 1 中"WorkBuddy 支持技能市场与自定义 Skill"的产品能力背景。</span></li>
+  </ul>
+</section>
+
+<section class="check">
+  <h2>九、人工核查记录</h2>
+  <p><b>核查人：</b>star-mqp ｜ <b>核查日期：</b>2026-09-08</p>
+  <p>本节由学习者本人填写。我已通读全文，逐条核对了参考链接。我的修改与备注：</p>
+  <div class="blank"></div>
+  <div class="blank"></div>
+  <p style="font-size:0.85em;color:#57606a">（发布前请确认：比喻为个人理解；所有链接均可打开；自测题未抄答案。）</p>
+</section>
+
+<footer>由 concept-tutor Skill 生成 · 大数据与人工智能课程作业 · green-apple2026 仓库</footer>
+</div>
+</body>
+</html>

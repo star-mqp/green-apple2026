@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>概念学习资料：大模型的上下文（Context）</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; background: #fafbfc; color: #24292f; line-height: 1.8; padding: 40px 16px; }
+  .wrap { max-width: 800px; margin: 0 auto; }
+  header { background: linear-gradient(135deg, #1a7f37, #116329); color: #fff; padding: 32px 36px; border-radius: 14px; margin-bottom: 28px; }
+  header h1 { font-size: 1.7em; margin-bottom: 6px; }
+  header .meta { font-size: 0.88em; opacity: 0.92; }
+  section { background: #fff; border-radius: 12px; padding: 24px 32px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-left: 4px solid #1a7f37; }
+  h2 { font-size: 1.15em; color: #116329; margin-bottom: 12px; }
+  ul, ol { margin: 8px 0 8px 22px; }
+  li { margin-bottom: 6px; }
+  .personal { background: #fff8c5; border-left: 4px solid #d4a72c; padding: 14px 18px; border-radius: 8px; margin: 10px 0; }
+  .personal::before { content: "🐾 个人理解（非官方定义）"; display: block; font-weight: 700; color: #9a6700; font-size: 0.9em; margin-bottom: 6px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 0.94em; }
+  th, td { border: 1px solid #d0d7de; padding: 8px 12px; text-align: left; }
+  th { background: #f0fff4; }
+  .vs .card { border: 1px solid #d0d7de; border-radius: 10px; padding: 14px 18px; margin-bottom: 12px; }
+  .vs .no { border-left: 4px solid #cf222e; background: #fff5f5; }
+  .vs .yes { border-left: 4px solid #1a7f37; background: #f0fff4; }
+  .vs h3 { font-size: 1em; margin-bottom: 8px; }
+  .quiz li { margin-bottom: 10px; }
+  .ref li { margin-bottom: 10px; }
+  .ref .why { color: #57606a; font-size: 0.88em; display: block; }
+  .check { background: #f0fff4; border: 1px dashed #1a7f37; border-radius: 10px; padding: 16px 20px; }
+  .check .blank { border-bottom: 1px solid #8c959f; height: 30px; margin: 10px 0; }
+  footer { text-align: center; color: #57606a; font-size: 0.85em; margin: 32px 0 8px; }
+  figure { text-align: center; margin: 16px 0; }
+  figcaption { font-size: 0.85em; color: #57606a; margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>🧠 大模型的上下文（Context）</h1>
+  <div class="meta">生成工具：concept-tutor Skill ｜ 生成日期：2026-09-08 ｜ 学习者：star-mqp</div>
+</header>
+
+<section>
+  <h2>一、学习目标</h2>
+  <ol>
+    <li>读完本资料我能说清"上下文"和"上下文窗口"分别指什么</li>
+    <li>我能说出上下文里通常装了哪几类信息（系统提示词、工具定义、对话历史、外部资料）</li>
+    <li>我能解释"上下文腐烂/注意力稀释"，并说明为什么"塞得越多不一定越好"</li>
+    <li>我能列出至少两种管理上下文的工程手段（压缩、按需检索、结构化笔记）</li>
+  </ol>
+</section>
+
+<section>
+  <h2>二、核心问题</h2>
+  <ol>
+    <li>上下文窗口是"越大越好"吗？为什么 Anthropic 说上下文是<b>边际收益递减的有限资源</b>？</li>
+    <li>同样的模型，为什么换一种组织上下文的方式，效果差别很大？</li>
+    <li>上下文和 Agent 是什么关系——上下文如何影响 Agent 的工作质量？</li>
+  </ol>
+</section>
+
+<section>
+  <h2>三、我的解释（个人化）</h2>
+  <div class="personal">
+    <p>我把大模型的上下文理解成<b>模型的"工作台桌面"</b>：它每次回答问题时，能看见、能引用的一切东西都摊在这张桌上——你的问题、之前的对话、系统设定、工具说明书、临时贴上来的资料。</p>
+    <p><b>上下文窗口</b>就是这张桌子的<b>面积</b>，以 token 为单位。桌子太小，材料放不下，模型"看不见"就等于"不知道"（这解释了为什么聊久了模型会忘记开头说过的话）；但桌子也<b>不是越大越好</b>——摊满一桌子的材料，找关键那页反而费劲。Anthropic 把这个现象叫<b>上下文腐烂</b>：token 越多，注意力被摊薄，准确回忆的能力反而下降。</p>
+    <p>所以高级的用法不是"把什么都塞进桌子"，而是<b>只把当前最需要的高信号材料放上去，其余的收进抽屉（文件系统/知识库），要用再取</b>——这就是从"提示工程"进化到"上下文工程"的核心思想。</p>
+  </div>
+</section>
+
+<section>
+  <h2>四、核心机制 / 组成</h2>
+  <table>
+    <tr><th>上下文的组成</th><th>典型内容</th><th>作用</th></tr>
+    <tr><td>系统提示词</td><td>角色设定、行为规范</td><td>决定模型"以什么身份、按什么规则"工作</td></tr>
+    <tr><td>工具定义</td><td>可调用工具的名称与说明</td><td>告诉模型有哪些手可用（Agent 的关键）</td></tr>
+    <tr><td>对话历史</td><td>多轮消息与工具调用结果</td><td>任务目标与中间结果的"工作记忆"</td></tr>
+    <tr><td>外部注入资料</td><td>RAG 检索片段、粘贴的文档</td><td>补充模型训练时没有的知识</td></tr>
+  </table>
+
+  <figure>
+    <svg viewBox="0 0 640 230" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+      <rect x="40" y="20" width="360" height="190" rx="12" fill="#fff" stroke="#1a7f37" stroke-width="2.5"/>
+      <text x="220" y="48" text-anchor="middle" font-size="15" font-weight="bold" fill="#116329">上下文窗口（有限的桌面）</text>
+      <rect x="60" y="62" width="320" height="30" rx="6" fill="#dafbe1" stroke="#1a7f37"/>
+      <text x="220" y="82" text-anchor="middle" font-size="13" fill="#116329">系统提示词（角色与规则）</text>
+      <rect x="60" y="100" width="320" height="30" rx="6" fill="#dafbe1" stroke="#1a7f37"/>
+      <text x="220" y="120" text-anchor="middle" font-size="13" fill="#116329">工具定义（说明书）</text>
+      <rect x="60" y="138" width="320" height="30" rx="6" fill="#fff8c5" stroke="#d4a72c"/>
+      <text x="220" y="158" text-anchor="middle" font-size="13" fill="#9a6700">对话历史（越聊越长 ⚠ 摊薄注意力）</text>
+      <rect x="60" y="176" width="320" height="26" rx="6" fill="#ddf4ff" stroke="#0969da"/>
+      <text x="220" y="194" text-anchor="middle" font-size="13" fill="#0550ae">外部资料（RAG / 粘贴文档）</text>
+      <rect x="440" y="60" width="170" height="56" rx="10" fill="#f0fff4" stroke="#1a7f37" stroke-width="2"/>
+      <text x="525" y="84" text-anchor="middle" font-size="13" fill="#116329">🗄 抽屉：文件系统/</text>
+      <text x="525" y="102" text-anchor="middle" font-size="13" fill="#116329">知识库（按需取用）</text>
+      <path d="M 440 88 L 404 88" stroke="#1a7f37" stroke-width="2" fill="none" marker-end="url(#arr2)"/>
+      <defs><marker id="arr2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#1a7f37"/></marker></defs>
+      <text x="525" y="140" text-anchor="middle" font-size="12" fill="#57606a">原则：保持桌面最小而高信号，</text>
+      <text x="525" y="156" text-anchor="middle" font-size="12" fill="#57606a">大件材料收进抽屉，用时再取</text>
+    </svg>
+    <figcaption>图 1：上下文 = 模型的"工作台桌面"，窗口大小有限，注意力会被过多内容摊薄</figcaption>
+  </figure>
+
+  <p><b>规模的直观感受</b>：2023 年 Anthropic 把 Claude 的上下文从 9K token 扩到 100K——约 7.5 万个英文单词、几百页材料；一个人读完需要 5 小时以上，Claude 不到 1 分钟。官方演示中把《了不起的盖茨比》全文放入上下文，改动其中一行后模型仅 22 秒就找到了差异。但官方同时提示：对复杂问题，整篇放进上下文"很可能比基于向量检索的方法更好"——说明<b>长窗口与检索是互补手段，不是替代关系</b>。</p>
+</section>
+
+<section>
+  <h2>五、具体应用场景</h2>
+  <p><b>场景：本仓库的 Skill 就在管理上下文。</b>concept-tutor Skill 并没有把"如何生成学习资料"的全部细节常驻塞进对话，而是当我说"学习概念 X"时才被加载（按需加载），且 SKILL.md 顶部只有一行 description 常驻——这正是"用最小的高信号 token 集合"原则的落地。再如：Agent 干活时循环多轮，工具输出越积越多；如果不做压缩，跑到后半程它可能"忘了"最初的任务要求——Anthropic 给出的对策包括<b>压缩</b>（总结后重启窗口）、<b>结构化笔记</b>（把关键决策写到窗口外的 NOTES.md，需要时取回）和<b>子 Agent</b>（让子 Agent 用干净窗口干活，只回传浓缩结果）。</p>
+  <p class="personal" style="background:#f0fff4">我自己的体感验证：在长对话里让 AI"按开头说的格式输出"，它有时会走样——这就是上下文太长导致早期指令被稀释的日常例子。</p>
+</section>
+
+<section>
+  <h2>六、容易混淆的问题与使用边界</h2>
+  <div class="vs">
+    <div class="card no">
+      <h3>❌ 上下文窗口 ≠ 记忆</h3>
+      <p>窗口是"本次对话能看见的范围"，关掉会话就没了；模型没有跨会话的长期记忆，长期记忆要靠外部存储（文件、知识库、Skill）。</p>
+    </div>
+    <div class="card yes">
+      <h3>❌ 上下文工程 ≠ 提示工程</h3>
+      <p>提示工程关注"怎么写好一段指令"；上下文工程是持续策划"哪些 token 应该进入模型视野"——范围覆盖系统提示、工具、历史、外部数据的整体管理。</p>
+    </div>
+  </div>
+  <ul>
+    <li><b>窗口大 ≠ 随便塞</b>：注意力随 token 数增加被摊薄（Transformer 的注意力是 token 两两关系，n² 级增长），信噪比下降比"装不下"更早发生。</li>
+    <li><b>token ≠ 字数</b>：一个汉字通常占 1~2 个 token，估算用量时要换算，不能按字符数直接想当然。</li>
+    <li><b>使用边界</b>：上下文适合放"当前任务必需"的信息；海量知识库应走检索（RAG）按需注入，而不是一次性灌入窗口。</li>
+  </ul>
+</section>
+
+<section>
+  <h2>七、自测问题</h2>
+  <ol class="quiz">
+    <li>用自己的话解释"上下文窗口"和"上下文工程"的区别。</li>
+    <li>什么是"上下文腐烂"？它由 Transformer 的什么性质导致？</li>
+    <li>同样是长任务，"压缩"和"结构化笔记"两种策略分别适合什么情况？</li>
+    <li>为什么说"上下文是 Agent 的工作记忆"？结合 agent.html 的 Agent Loop 说明上下文质量如何影响 Agent 决策。</li>
+    <li>（开放）如果让你为本仓库设计"学习更多概念"的流程，哪些内容该常驻上下文，哪些该放进 Skill 按需加载？为什么？</li>
+  </ol>
+</section>
+
+<section>
+  <h2>八、参考来源（均已核查可访问）</h2>
+  <ul class="ref">
+    <li>Anthropic 工程博客：<a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents">Effective context engineering for AI agents</a>
+      <span class="why">支撑论断：上下文工程与提示工程的区分、上下文腐烂与注意力摊薄、最小高信号 token 集合原则、压缩/结构化笔记/子 Agent 三种策略。</span></li>
+    <li>Anthropic 官方公告：<a href="https://www.anthropic.com/news/100k-context-windows">Introducing 100K context windows</a>
+      <span class="why">支撑论断：100K 窗口 ≈ 7.5 万词/数百页、盖茨比实验 22 秒找差异、长窗口与向量检索互补的官方表述。</span></li>
+    <li>Anthropic 官方博客：<a href="https://claude.com/blog/skills">Introducing Agent Skills</a>
+      <span class="why">支撑论断：Skill"只在与任务相关时加载最小所需信息"的按需加载机制（见第五节应用场景）。</span></li>
+  </ul>
+</section>
+
+<section class="check">
+  <h2>九、人工核查记录</h2>
+  <p><b>核查人：</b>star-mqp ｜ <b>核查日期：</b>2026-09-08</p>
+  <p>本节由学习者本人填写。我已通读全文，逐条核对了参考链接。我的修改与备注：</p>
+  <div class="blank"></div>
+  <div class="blank"></div>
+  <p style="font-size:0.85em;color:#57606a">（发布前请确认：比喻为个人理解；所有链接均可打开；自测题未抄答案。）</p>
+</section>
+
+<footer>由 concept-tutor Skill 生成 · 大数据与人工智能课程作业 · green-apple2026 仓库</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>概念学习资料：Agent（智能体）</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; background: #fafbfc; color: #24292f; line-height: 1.8; padding: 40px 16px; }
+  .wrap { max-width: 800px; margin: 0 auto; }
+  header { background: linear-gradient(135deg, #0969da, #0550ae); color: #fff; padding: 32px 36px; border-radius: 14px; margin-bottom: 28px; }
+  header h1 { font-size: 1.7em; margin-bottom: 6px; }
+  header .meta { font-size: 0.88em; opacity: 0.92; }
+  section { background: #fff; border-radius: 12px; padding: 24px 32px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-left: 4px solid #0969da; }
+  h2 { font-size: 1.15em; color: #0550ae; margin-bottom: 12px; }
+  ul, ol { margin: 8px 0 8px 22px; }
+  li { margin-bottom: 6px; }
+  .personal { background: #fff8c5; border-left: 4px solid #d4a72c; padding: 14px 18px; border-radius: 8px; margin: 10px 0; }
+  .personal::before { content: "🐾 个人理解（非官方定义）"; display: block; font-weight: 700; color: #9a6700; font-size: 0.9em; margin-bottom: 6px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 0.94em; }
+  th, td { border: 1px solid #d0d7de; padding: 8px 12px; text-align: left; }
+  th { background: #f0f6fb; }
+  .vs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 12px 0; }
+  .vs .card { border: 1px solid #d0d7de; border-radius: 10px; padding: 14px 18px; }
+  .vs .no { border-top: 4px solid #cf222e; background: #fff5f5; }
+  .vs .yes { border-top: 4px solid #1a7f37; background: #f0fff4; }
+  .vs h3 { font-size: 1em; margin-bottom: 8px; }
+  .quiz li { margin-bottom: 10px; }
+  .ref li { margin-bottom: 10px; }
+  .ref .why { color: #57606a; font-size: 0.88em; display: block; }
+  .check { background: #f0f7ff; border: 1px dashed #0969da; border-radius: 10px; padding: 16px 20px; }
+  .check .blank { border-bottom: 1px solid #8c959f; height: 30px; margin: 10px 0; }
+  footer { text-align: center; color: #57606a; font-size: 0.85em; margin: 32px 0 8px; }
+  figure { text-align: center; margin: 16px 0; }
+  figcaption { font-size: 0.85em; color: #57606a; margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>🤖 Agent（智能体）</h1>
+  <div class="meta">生成工具：concept-tutor Skill ｜ 生成日期：2026-09-08 ｜ 学习者：star-mqp</div>
+</header>
+
+<section>
+  <h2>一、学习目标</h2>
+  <ol>
+    <li>读完本资料我能<b>用自己的话</b>说清 Agent 和普通 AI 对话、普通程序的区别</li>
+    <li>我能说出 Agent 的核心组成（LLM、工具、循环）以及"动态自主决策"的含义</li>
+    <li>我能判断一个具体场景该用 Workflow 还是 Agent</li>
+    <li>我能识别 Agent 的能力边界和典型失效方式，避免迷信或误用</li>
+  </ol>
+</section>
+
+<section>
+  <h2>二、核心问题</h2>
+  <ol>
+    <li>为什么说"Agent 通常就是在循环中基于环境反馈使用工具的 LLM"？</li>
+    <li>Agent 与 Workflow（预定义流程编排 LLM）的本质差异是什么？</li>
+    <li>什么时候 Agent 反而不如简单方案好？</li>
+  </ol>
+</section>
+
+<section>
+  <h2>三、我的解释（个人化）</h2>
+  <div class="personal">
+    <p>我把 <b>普通 AI 对话</b>理解成"一问一答的顾问"：你问一句，它答一句，答完就结束，从不真正动手。</p>
+    <p>而 <b>Agent</b>更像一个<b>被授权的实习生</b>：你给它一个目标（比如"帮我把这次课程的三个概念整理成网页笔记"），它不问你要每一步怎么做，而是自己拆任务、自己挑工具、自己检查结果；做错一步会根据报错反馈调整，直到任务完成才向你汇报。它和"顾问"最大的区别是<b>过程控制权在自己手里</b>——Anthropic 官方的定义正是"LLM 动态地指挥自己的流程和工具使用，并对如何完成任务保持掌控"。</p>
+    <p>再打个比方：<b>Workflow 像地铁</b>（轨道铺好，每站固定），<b>Agent 像出租车</b>（司机根据路况实时决定走哪条路，目的地不变）。</p>
+  </div>
+</section>
+
+<section>
+  <h2>四、核心机制 / 组成</h2>
+  <table>
+    <tr><th>组成部分</th><th>作用</th><th>类比实习生的话…</th></tr>
+    <tr><td>LLM（大脑）</td><td>负责理解目标、拆解任务、做每一步决策</td><td>思考和判断能力</td></tr>
+    <tr><td>工具（Tools）</td><td>读写文件、执行代码、搜索网页等实际行动能力</td><td>电脑、办公软件、电话</td></tr>
+    <tr><td>循环 + 反馈（Agent Loop）</td><td>执行→观察结果（含报错）→修正→再执行，直到完成</td><td>做完一步看看结果对不对，不对就改</td></tr>
+    <tr><td>上下文（工作记忆）</td><td>承载任务目标、历史步骤与中间结果</td><td>工作笔记本（详见 llm-context.html）</td></tr>
+  </table>
+
+  <figure>
+    <svg viewBox="0 0 640 190" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+      <defs>
+        <marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#0969da"/></marker>
+      </defs>
+      <rect x="20" y="60" width="130" height="60" rx="10" fill="#fff" stroke="#0969da" stroke-width="2"/>
+      <text x="85" y="85" text-anchor="middle" font-size="14" fill="#24292f">🎯 接收目标</text>
+      <text x="85" y="105" text-anchor="middle" font-size="12" fill="#57606a">用户下达任务</text>
+
+      <rect x="190" y="60" width="140" height="60" rx="10" fill="#fff" stroke="#0969da" stroke-width="2"/>
+      <text x="260" y="85" text-anchor="middle" font-size="14" fill="#24292f">🧠 LLM 决策</text>
+      <text x="260" y="105" text-anchor="middle" font-size="12" fill="#57606a">自主拆解/选工具</text>
+
+      <rect x="370" y="60" width="130" height="60" rx="10" fill="#fff" stroke="#0969da" stroke-width="2"/>
+      <text x="435" y="85" text-anchor="middle" font-size="14" fill="#24292f">🔧 执行工具</text>
+      <text x="435" y="105" text-anchor="middle" font-size="12" fill="#57606a">实际动手操作</text>
+
+      <rect x="370" y="145" width="130" height="38" rx="10" fill="#fff8c5" stroke="#d4a72c" stroke-width="2"/>
+      <text x="435" y="169" text-anchor="middle" font-size="13" fill="#9a6700">👀 观察反馈/报错</text>
+
+      <rect x="540" y="60" width="80" height="60" rx="10" fill="#f0fff4" stroke="#1a7f37" stroke-width="2"/>
+      <text x="580" y="85" text-anchor="middle" font-size="14" fill="#1a7f37">✅ 完成</text>
+      <text x="580" y="105" text-anchor="middle" font-size="12" fill="#57606a">汇报结果</text>
+
+      <line x1="150" y1="90" x2="186" y2="90" stroke="#0969da" stroke-width="2" marker-end="url(#arr)"/>
+      <line x1="330" y1="90" x2="366" y2="90" stroke="#0969da" stroke-width="2" marker-end="url(#arr)"/>
+      <line x1="435" y1="120" x2="435" y2="141" stroke="#d4a72c" stroke-width="2" marker-end="url(#arr)"/>
+      <path d="M 370 164 Q 240 164 235 124" fill="none" stroke="#d4a72c" stroke-width="2" marker-end="url(#arr)"/>
+      <text x="285" y="155" text-anchor="middle" font-size="12" fill="#9a6700">循环：根据反馈修正下一步</text>
+      <line x1="500" y1="90" x2="536" y2="90" stroke="#1a7f37" stroke-width="2" marker-end="url(#arr)"/>
+    </svg>
+    <figcaption>图 1：Agent 循环（Agent Loop）示意——LLM 在循环中根据环境反馈自主使用工具</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2>五、具体应用场景</h2>
+  <p><b>场景：本仓库就是例子。</b>在 WorkBuddy（一个 Agent 产品）里，我输入"帮我完成作业：创建 Skill、生成三份概念学习资料并推送到 GitHub"，它自己完成了克隆仓库、创建目录、逐个写入 HTML、执行 git 提交和推送这一长串步骤。期间如果某步失败（比如网络超时），它会观察到报错并重试。这正是"LLM 动态指挥自己的流程和工具使用"——如果换成传统程序，需要程序员预先写死每一步的分支逻辑。</p>
+  <p class="personal" style="background:#f0f7ff">另一个对比场景：我想"每天早上 8 点把天气写进笔记"——这种<b>流程完全固定</b>的任务用 Workflow/定时脚本更稳，不需要 Agent 的动态决策。</p>
+</section>
+
+<section>
+  <h2>六、容易混淆的问题与使用边界</h2>
+  <div class="vs">
+    <div class="card no">
+      <h3>❌ Agent ≠ 聊天机器人</h3>
+      <p>聊天机器人只输出文字建议，不执行动作；Agent 有工具，能实际改变环境（写文件、发请求、跑代码）。</p>
+    </div>
+    <div class="card yes">
+      <h3>❌ Agent ≠ Workflow</h3>
+      <p>Workflow 的流程由开发者预先用代码编排，LLM 只是被调用的"零件"；Agent 的流程由 LLM 自己临场决定。二者是谱系关系，不是对立。</p>
+    </div>
+  </div>
+  <ul>
+    <li><b>Agent ≠ 万能</b>：自主性带来不确定性——同样的任务两次执行路径可能不同，出错方式也更难预测。Anthropic 的建议是"从最简单的方案开始，只在确实需要动态决策时才引入 Agent"。</li>
+    <li><b>使用边界</b>：任务目标模糊需要探索 → 适合 Agent；步骤完全确定、追求稳定可审计 → 用 Workflow；只是问知识 → 普通对话即可。</li>
+    <li><b>成本边界</b>：Agent 循环多轮调用，token 消耗和出错概率都随轮数上升，简单任务用 Agent 是"高射炮打蚊子"。</li>
+  </ul>
+</section>
+
+<section>
+  <h2>七、自测问题</h2>
+  <ol class="quiz">
+    <li>用自己的话说出 Agent 与 Workflow 的定义差异，各举一个课程中的例子。</li>
+    <li>Agent 循环中"观察反馈"这一环如果被去掉，会发生什么？</li>
+    <li>为什么说"工具"是 Agent 从'说'到'做'的关键？没有工具的 LLM 还能算 Agent 吗？</li>
+    <li>列出两个"不该用 Agent"的场景，并说明理由。</li>
+    <li>（开放）结合 Agent Loop 的不确定性，谈谈如果让 Agent 管理你的课程作业仓库，哪些环节应该保留人工确认？</li>
+  </ol>
+</section>
+
+<section>
+  <h2>八、参考来源（均已核查可访问）</h2>
+  <ul class="ref">
+    <li>Anthropic 官方工程博客：<a href="https://www.anthropic.com/research/building-effective-agents">Building effective agents</a>
+      <span class="why">支撑论断：Agent 的官方定义（"LLM 动态指挥自身流程和工具使用"）、Agent 与 Workflow 的区分、"Agent 通常是在循环中使用工具的 LLM"、从简单方案开始的原则。</span></li>
+    <li>Anthropic 官方博客：<a href="https://claude.com/blog/skills">Introducing Agent Skills</a>
+      <span class="why">支撑论断：Skill 在 Agent 体系中的位置（结合 skill.html 阅读），Agent 产品形态的实际能力。</span></li>
+    <li>WorkBuddy 官方文档：<a href="https://www.codebuddy.cn/docs/workbuddy/Overview">WorkBuddy 简介</a>
+      <span class="why">支撑论断：第五节应用场景中"WorkBuddy 是 Agent 产品"的依据（自主规划执行、实际操作本地文件、交付可验收结果）。</span></li>
+  </ul>
+</section>
+
+<section class="check">
+  <h2>九、人工核查记录</h2>
+  <p><b>核查人：</b>star-mqp ｜ <b>核查日期：</b>2026-09-08</p>
+  <p>本节由学习者本人填写。我已通读全文，逐条核对了参考链接。我的修改与备注：</p>
+  <div class="blank"></div>
+  <div class="blank"></div>
+  <p style="font-size:0.85em;color:#57606a">（发布前请确认：比喻为个人理解；所有链接均可打开；自测题未抄答案。）</p>
+</section>
+
+<footer>由 concept-tutor Skill 生成 · 大数据与人工智能课程作业 · green-apple2026 仓库</footer>
+</div>
+</body>
+</html>
